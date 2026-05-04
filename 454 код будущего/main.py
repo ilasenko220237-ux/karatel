@@ -23,7 +23,6 @@ class TrainingPlannerApp:
         ttk.Label(input_frame, text="Дата (ГГГГ-ММ-ДД):").grid(row=0, column=0, sticky="w")
         self.date_entry = ttk.Entry(input_frame)
         self.date_entry.grid(row=0, column=1, padx=5, pady=5)
-        # Подсказка по формату
         self.date_entry.insert(0, datetime.now().strftime("%Y-%m-%d"))
 
         # Тип тренировки
@@ -94,20 +93,23 @@ class TrainingPlannerApp:
         with open(DATA_FILE, "w", encoding="utf-8") as f:
             json.dump(self.workouts, f, ensure_ascii=False, indent=4)
 
+    def get_next_id(self):
+        """Генерация уникального ID даже после удаления записей."""
+        if not self.workouts:
+            return 1
+        return max(w["id"] for w in self.workouts) + 1
+
     def validate_input(self, date_str, w_type, duration_str):
-        # Проверка пустых полей
         if not date_str or not w_type or not duration_str:
             messagebox.showerror("Ошибка", "Все поля должны быть заполнены!")
             return False
 
-        # Проверка формата даты
         try:
             datetime.strptime(date_str, "%Y-%m-%d")
         except ValueError:
             messagebox.showerror("Ошибка", "Неверный формат даты! Используйте ГГГГ-ММ-ДД.")
             return False
 
-        # Проверка длительности
         try:
             duration = int(duration_str)
             if duration <= 0:
@@ -127,7 +129,7 @@ class TrainingPlannerApp:
             return
 
         new_workout = {
-            "id": len(self.workouts) + 1,
+            "id": self.get_next_id(),
             "date": date_str,
             "type": w_type,
             "duration": int(duration_str)
@@ -137,19 +139,20 @@ class TrainingPlannerApp:
         self.save_data()
         self.refresh_table()
 
-        # Очистка полей (кроме даты, удобно оставлять текущую)
         self.type_entry.delete(0, tk.END)
         self.duration_entry.delete(0, tk.END)
         
         messagebox.showinfo("Успех", "Тренировка добавлена в план!")
 
     def refresh_table(self, data=None):
+        """Исправленный метод обновления таблицы."""
         for item in self.tree.get_children():
             self.tree.delete(item)
         
         display_data = data if data is not None else self.workouts
         
-        for w in display_
+        # ИСПРАВЛЕНИЕ ЗДЕСЬ: полный цикл и двоеточие
+        for w in display_data:
             self.tree.insert("", tk.END, values=(
                 w["id"],
                 w["date"],
